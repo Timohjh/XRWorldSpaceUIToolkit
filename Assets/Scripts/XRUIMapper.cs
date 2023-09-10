@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
@@ -11,30 +8,26 @@ public class XRUIMapper : MonoBehaviour
     [SerializeField] UIDocument document;
     [SerializeField] XRRayInteractor rightHand, leftHand;
     [SerializeField] InputActionProperty selectRight, selectLeft;
-    XRRayInteractor activeInteractor;
+
+    XRRayInteractor _activeInteractor;
+    public XRRayInteractor ActiveInteractor { get { return _activeInteractor; } }
 
     void OnEnable()
     {
         if (document == null) 
             document = GetComponent<UIDocument>();
 
-        activeInteractor = rightHand;
+        _activeInteractor = rightHand;
 
         document.panelSettings.SetScreenToPanelSpaceFunction((Vector2 screenPos) =>
         {
             var invalid = new Vector2(float.NaN, float.NaN);
 
-            var cameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-            Debug.DrawRay(cameraRay.origin, cameraRay.direction * 100, Color.blue);
-
             RaycastHit hit;
-            if(!activeInteractor.TryGetCurrent3DRaycastHit(out hit))
+            if(!_activeInteractor.TryGetCurrent3DRaycastHit(out hit))
             {
-                Debug.Log("invalid position");
                 return invalid;
             }
-
-            activeInteractor.TryGetCurrent3DRaycastHit(out hit);
 
             Vector2 pixelUV = hit.textureCoord;
             pixelUV.y = 1 - pixelUV.y;
@@ -58,7 +51,8 @@ public class XRUIMapper : MonoBehaviour
         if (selectRight.action.WasPressedThisFrame())
         {
             SwitchHands(true);
-        }else if (selectLeft.action.WasPressedThisFrame())
+        }
+        else if (selectLeft.action.WasPressedThisFrame())
         {
             SwitchHands(false);
         }
@@ -70,14 +64,14 @@ public class XRUIMapper : MonoBehaviour
         {
             leftHand.enabled = false;
             rightHand.enabled = true;
-            activeInteractor = rightHand;
+            _activeInteractor = rightHand;
 
         }
         else
         {
             rightHand.enabled = false;
             leftHand.enabled = true;
-            activeInteractor = leftHand;
+            _activeInteractor = leftHand;
         }
     }
 }
